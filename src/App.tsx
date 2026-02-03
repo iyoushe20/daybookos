@@ -2,24 +2,85 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { ProjectProvider } from "@/contexts/ProjectContext";
+import { TaskProvider } from "@/contexts/TaskContext";
+
+// Pages
+import Landing from "./pages/Landing";
+import Login from "./pages/Login";
+import OnboardingSetup from "./pages/OnboardingSetup";
+import Dashboard from "./pages/Dashboard";
+import NewLog from "./pages/NewLog";
+import ReviewLog from "./pages/ReviewLog";
+import TodaysPlan from "./pages/TodaysPlan";
+import Reports from "./pages/Reports";
+import GenerateReport from "./pages/GenerateReport";
+import ViewReport from "./pages/ViewReport";
+import SettingsProfile from "./pages/SettingsProfile";
+import SettingsProjects from "./pages/SettingsProjects";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAuth();
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  return <>{children}</>;
+}
+
+function AppRoutes() {
+  const { isAuthenticated, user } = useAuth();
+
+  return (
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Landing />} />
+      <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />} />
+      
+      {/* Onboarding */}
+      <Route path="/onboarding/setup" element={
+        <ProtectedRoute>
+          <OnboardingSetup />
+        </ProtectedRoute>
+      } />
+
+      {/* Main App Routes */}
+      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/logs/new" element={<ProtectedRoute><NewLog /></ProtectedRoute>} />
+      <Route path="/logs/:id" element={<ProtectedRoute><ReviewLog /></ProtectedRoute>} />
+      <Route path="/logs/:id/review" element={<ProtectedRoute><ReviewLog /></ProtectedRoute>} />
+      <Route path="/tasks" element={<ProtectedRoute><TodaysPlan /></ProtectedRoute>} />
+      <Route path="/tasks/today" element={<ProtectedRoute><TodaysPlan /></ProtectedRoute>} />
+      <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+      <Route path="/reports/generate" element={<ProtectedRoute><GenerateReport /></ProtectedRoute>} />
+      <Route path="/reports/:id" element={<ProtectedRoute><ViewReport /></ProtectedRoute>} />
+      <Route path="/settings/profile" element={<ProtectedRoute><SettingsProfile /></ProtectedRoute>} />
+      <Route path="/settings/projects" element={<ProtectedRoute><SettingsProjects /></ProtectedRoute>} />
+
+      {/* Catch-all */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <AuthProvider>
+        <ProjectProvider>
+          <TaskProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AppRoutes />
+            </BrowserRouter>
+          </TaskProvider>
+        </ProjectProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
