@@ -1,0 +1,297 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { AppLayout } from '@/components/AppLayout';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { useProjects } from '@/contexts/ProjectContext';
+import { format } from 'date-fns';
+import { 
+  Calendar as CalendarIcon, 
+  ArrowLeft,
+  Loader2,
+  Link as LinkIcon,
+  Plus,
+  Trash2,
+  Sparkles
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
+
+interface Attachment {
+  id: string;
+  url: string;
+  label: string;
+}
+
+const PLACEHOLDER_TEXT = `What did you work on today? Paste your notes here...
+
+Examples:
+• Had meeting with Raj about PRD review
+• Need to follow up with Meha on API docs
+• Blocked on legal sign-off for vendor contract
+• Decided to use Stripe for payments
+• Need to update Jira ticket STATUS-123
+• Vendor refused to change pricing model`;
+
+export default function NewLog() {
+  const navigate = useNavigate();
+  const { projects } = useProjects();
+  const [date, setDate] = useState<Date>(new Date());
+  const [projectId, setProjectId] = useState<string>('');
+  const [rawText, setRawText] = useState('');
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [showAttachments, setShowAttachments] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const activeProjects = projects.filter(p => p.status === 'active');
+  const characterCount = rawText.length;
+  const maxCharacters = 10000;
+
+  const handleAddAttachment = () => {
+    if (attachments.length >= 5) {
+      toast.error('Maximum 5 attachments allowed');
+      return;
+    }
+    setShowAttachments(true);
+    setAttachments([...attachments, { id: `att-${Date.now()}`, url: '', label: '' }]);
+  };
+
+  const handleRemoveAttachment = (id: string) => {
+    const newAttachments = attachments.filter(a => a.id !== id);
+    setAttachments(newAttachments);
+    if (newAttachments.length === 0) {
+      setShowAttachments(false);
+    }
+  };
+
+  const handleAttachmentChange = (id: string, field: 'url' | 'label', value: string) => {
+    setAttachments(attachments.map(a => 
+      a.id === id ? { ...a, [field]: value } : a
+    ));
+  };
+
+  const isValidUrl = (url: string) => {
+    if (!url) return true;
+    return url.startsWith('http://') || url.startsWith('https://');
+  };
+
+  const isValid = projectId && rawText.trim().length >= 10;
+
+  const handleSubmit = async () => {
+    if (!isValid) return;
+
+    // Validate attachments
+    const invalidAttachments = attachments.filter(a => a.url && !isValidUrl(a.url));
+    if (invalidAttachments.length > 0) {
+      toast.error('Please enter valid URLs starting with http:// or https://');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    toast.success('Log parsed successfully!');
+    navigate('/logs/demo-log-id/review');
+  };
+
+  const handleCancel = () => {
+    if (rawText.trim()) {
+      // In a real app, show confirmation modal
+      if (confirm('Discard this log?')) {
+        navigate('/dashboard');
+      }
+    } else {
+      navigate('/dashboard');
+    }
+  };
+
+  return (
+    <AppLayout>
+      <div className="max-w-3xl mx-auto">
+        {/* Header */}
+        <div className="mb-6">
+          <Button variant="ghost" className="gap-2 mb-4 -ml-3" onClick={handleCancel}>
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+          <h1 className="text-2xl font-bold">New Daily Log</h1>
+          <p className="text-muted-foreground">
+            {format(date, 'EEEE, MMMM d, yyyy')}
+          </p>
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-card border border-border rounded-xl p-6 space-y-6"
+        >
+          {/* Date and Project */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !date && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date ? format(date, "MMM d, yyyy") : "Pick a date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={(d) => d && setDate(d)}
+                    disabled={(date) => date > new Date()}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Project <span className="text-destructive">*</span></Label>
+              <Select value={projectId} onValueChange={setProjectId}>
+                <SelectTrigger className={!projectId ? 'text-muted-foreground' : ''}>
+                  <SelectValue placeholder="Select a project" />
+                </SelectTrigger>
+                <SelectContent>
+                  {activeProjects.map(project => (
+                    <SelectItem key={project.id} value={project.id}>
+                      {project.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Notes Textarea */}
+          <div className="space-y-2">
+            <Label>Your Notes <span className="text-destructive">*</span></Label>
+            <Textarea
+              placeholder={PLACEHOLDER_TEXT}
+              value={rawText}
+              onChange={(e) => setRawText(e.target.value.slice(0, maxCharacters))}
+              className="min-h-[300px] resize-y font-mono text-sm"
+            />
+            <div className="flex justify-end">
+              <span className={cn(
+                "text-sm",
+                characterCount > maxCharacters * 0.9 ? "text-warning" : "text-muted-foreground"
+              )}>
+                {characterCount.toLocaleString()} / {maxCharacters.toLocaleString()}
+              </span>
+            </div>
+          </div>
+
+          {/* Attachments */}
+          {showAttachments ? (
+            <div className="space-y-4">
+              <Label>Attachments</Label>
+              {attachments.map((attachment, index) => (
+                <motion.div
+                  key={attachment.id}
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="flex gap-3 items-start"
+                >
+                  <div className="flex-1 space-y-2">
+                    <Input
+                      placeholder="https://..."
+                      value={attachment.url}
+                      onChange={(e) => handleAttachmentChange(attachment.id, 'url', e.target.value)}
+                      className={!isValidUrl(attachment.url) ? 'border-destructive' : ''}
+                    />
+                    <Input
+                      placeholder="Label (optional)"
+                      value={attachment.label}
+                      onChange={(e) => handleAttachmentChange(attachment.id, 'label', e.target.value)}
+                    />
+                    {!isValidUrl(attachment.url) && attachment.url && (
+                      <p className="text-xs text-destructive">
+                        Please enter a valid URL starting with http:// or https://
+                      </p>
+                    )}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleRemoveAttachment(attachment.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </motion.div>
+              ))}
+              {attachments.length < 5 && (
+                <Button variant="ghost" size="sm" onClick={handleAddAttachment} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add another link
+                </Button>
+              )}
+              <p className="text-xs text-muted-foreground">
+                {attachments.length} / 5 attachments
+              </p>
+            </div>
+          ) : (
+            <Button
+              variant="ghost"
+              className="gap-2 text-muted-foreground"
+              onClick={handleAddAttachment}
+            >
+              <LinkIcon className="h-4 w-4" />
+              Add link (PRD, Jira ticket, doc...)
+            </Button>
+          )}
+
+          {/* Actions */}
+          <div className="flex items-center justify-between pt-4 border-t border-border">
+            <Button variant="ghost" onClick={handleCancel}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={!isValid || isSubmitting}
+              className="gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  Generate Plan
+                </>
+              )}
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+    </AppLayout>
+  );
+}
