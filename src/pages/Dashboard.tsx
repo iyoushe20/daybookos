@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppLayout } from '@/components/AppLayout';
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProjects } from '@/contexts/ProjectContext';
 import { useTasks } from '@/contexts/TaskContext';
+import { useGuidedTour, StartTourButton } from '@/components/onboarding/GuidedTour';
 import { 
   FileText, 
   CheckSquare, 
@@ -17,7 +18,8 @@ import {
   X,
   ArrowRight,
   Calendar,
-  Clock
+  Lightbulb,
+  Sparkles
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -25,7 +27,19 @@ export default function Dashboard() {
   const { user } = useAuth();
   const { projects } = useProjects();
   const { tasks } = useTasks();
+  const { startTour } = useGuidedTour();
   const [showWelcome, setShowWelcome] = useState(true);
+  const [showTourPrompt, setShowTourPrompt] = useState(false);
+
+  // Check if tour was completed
+  useEffect(() => {
+    const tourCompleted = localStorage.getItem('pmtaskos_tour_completed');
+    const hasShownTourPrompt = localStorage.getItem('pmtaskos_tour_prompt_shown');
+    if (!tourCompleted && !hasShownTourPrompt) {
+      setShowTourPrompt(true);
+      localStorage.setItem('pmtaskos_tour_prompt_shown', 'true');
+    }
+  }, []);
 
   const openTasks = tasks.filter(t => t.status === 'open');
   const blockers = tasks.filter(t => t.category === 'blocker' && t.status === 'open');
@@ -61,12 +75,68 @@ export default function Dashboard() {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
+  const handleStartTour = () => {
+    setShowTourPrompt(false);
+    startTour();
+  };
+
   return (
     <AppLayout>
       <div className="space-y-8">
+        {/* Tour Prompt */}
+        <AnimatePresence>
+          {showTourPrompt && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              className="relative bg-gradient-to-r from-primary/15 via-category-followup/10 to-primary/15 border border-primary/30 rounded-xl p-5 overflow-hidden"
+            >
+              {/* Animated sparkle background */}
+              <motion.div
+                className="absolute top-2 right-20 text-primary/20"
+                animate={{ rotate: 360, scale: [1, 1.2, 1] }}
+                transition={{ duration: 4, repeat: Infinity }}
+              >
+                <Sparkles className="h-8 w-8" />
+              </motion.div>
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-3 right-3 h-8 w-8"
+                onClick={() => setShowTourPrompt(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+              
+              <div className="flex items-start gap-4">
+                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/20 text-primary">
+                  <Lightbulb className="h-6 w-6" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold mb-1">New to PM Task OS?</h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Take a 30-second tour to learn how AI helps you extract tasks from notes.
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <Button size="sm" onClick={handleStartTour} className="gap-2">
+                      <Sparkles className="h-4 w-4" />
+                      Start Tour
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => setShowTourPrompt(false)}>
+                      Skip for now
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Welcome Banner */}
         <AnimatePresence>
-          {showWelcome && (
+          {showWelcome && !showTourPrompt && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -90,10 +160,13 @@ export default function Dashboard() {
                   <p className="text-muted-foreground mb-4">
                     You're all set. Start by logging your daily work.
                   </p>
-                  <Button onClick={() => navigate('/logs/new')} className="gap-2">
-                    Create Your First Log
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center gap-3">
+                    <Button onClick={() => navigate('/logs/new')} className="gap-2">
+                      Create Your First Log
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                    <StartTourButton variant="outline" />
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -101,9 +174,12 @@ export default function Dashboard() {
         </AnimatePresence>
 
         {/* Page Header */}
-        <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back, {firstName}</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Dashboard</h1>
+            <p className="text-muted-foreground">Welcome back, {firstName}</p>
+          </div>
+          <StartTourButton variant="ghost" />
         </div>
 
         {/* Stats Cards */}

@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ProjectProvider } from "@/contexts/ProjectContext";
 import { TaskProvider } from "@/contexts/TaskContext";
+import { GuidedTourProvider, GuidedTourModal } from "@/components/onboarding/GuidedTour";
 
 // Pages
 import Landing from "./pages/Landing";
@@ -73,11 +74,14 @@ const App = () => (
       <AuthProvider>
         <ProjectProvider>
           <TaskProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <AppRoutes />
-            </BrowserRouter>
+            <GuidedTourProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <AppRoutes />
+                <GuidedTourModal />
+              </BrowserRouter>
+            </GuidedTourProvider>
           </TaskProvider>
         </ProjectProvider>
       </AuthProvider>
