@@ -6,8 +6,9 @@ import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
 import { DemoSection } from '@/components/landing/DemoSection';
 import { BenefitsSection } from '@/components/landing/BenefitsSection';
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
-import { CTASection } from '@/components/landing/CTASection';
-import { SocialProofSection } from '@/components/landing/SocialProofSection';
+ import { CTASection } from '@/components/landing/CTASection';
+ import { SocialProofSection } from '@/components/landing/SocialProofSection';
+ import { RoadmapSection } from '@/components/landing/RoadmapSection';
 
 export default function Landing() {
   return (
@@ -33,9 +34,10 @@ export default function Landing() {
 
       <HowItWorksSection />
       <DemoSection />
-      <BenefitsSection />
-      <TestimonialsSection />
-      <CTASection />
+       <BenefitsSection />
+       <RoadmapSection />
+       <TestimonialsSection />
+       <CTASection />
 
       {/* Footer */}
       <footer className="border-t border-border py-12 bg-card">

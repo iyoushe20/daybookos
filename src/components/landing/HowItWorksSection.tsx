@@ -1,44 +1,48 @@
-import { motion } from 'framer-motion';
-import { ClipboardList, Sparkles, CheckCircle2, FileBarChart, ArrowRight } from 'lucide-react';
+ import { motion } from 'framer-motion';
+ import { ClipboardList, Sparkles, CheckCircle2, FileBarChart, ArrowRight, Eye, Fingerprint, Undo2 } from 'lucide-react';
 
-const steps = [
-  {
-    number: '01',
-    icon: ClipboardList,
-    title: 'Paste your notes',
-    description: 'Write however you want — meeting notes, quick thoughts, stream of consciousness. No formatting needed.',
-    gradient: 'from-primary to-primary/70',
-    bgColor: 'bg-primary/10',
-    textColor: 'text-primary',
-  },
-  {
-    number: '02',
-    icon: Sparkles,
-    title: 'AI extracts tasks',
-    description: 'Our AI identifies actions, follow-ups, blockers, and updates automatically with confidence scores.',
-    gradient: 'from-[hsl(var(--category-followup))] to-[hsl(var(--category-followup))]/70',
-    bgColor: 'bg-[hsl(var(--category-followup))]/10',
-    textColor: 'text-[hsl(var(--category-followup))]',
-  },
-  {
-    number: '03',
-    icon: CheckCircle2,
-    title: 'Review & confirm',
-    description: 'Quick review, edit if needed, and confirm. Your structured task list is ready.',
-    gradient: 'from-[hsl(var(--success))] to-[hsl(var(--success))]/70',
-    bgColor: 'bg-[hsl(var(--success))]/10',
-    textColor: 'text-[hsl(var(--success))]',
-  },
-  {
-    number: '04',
-    icon: FileBarChart,
-    title: 'Generate reports',
-    description: 'One-click weekly summaries for stakeholders. No more status meeting prep.',
-    gradient: 'from-[hsl(var(--category-action))] to-[hsl(var(--category-action))]/70',
-    bgColor: 'bg-[hsl(var(--category-action))]/10',
-    textColor: 'text-[hsl(var(--category-action))]',
-  },
-];
+ const steps = [
+   {
+     number: '01',
+     icon: ClipboardList,
+     title: 'Paste your notes',
+     description: 'Write however you want — meeting notes, quick thoughts, stream of consciousness. No formatting needed.',
+     gradient: 'from-primary to-primary/70',
+     bgColor: 'bg-primary/10',
+     textColor: 'text-primary',
+     features: ['Any format works', 'No structure required'],
+   },
+   {
+     number: '02',
+     icon: Sparkles,
+     title: 'AI extracts with confidence',
+     description: 'Our AI identifies actions, follow-ups, and blockers with confidence scores and source provenance you can trust.',
+     gradient: 'from-[hsl(var(--category-followup))] to-[hsl(var(--category-followup))]/70',
+     bgColor: 'bg-[hsl(var(--category-followup))]/10',
+     textColor: 'text-[hsl(var(--category-followup))]',
+     features: ['Confidence scores', 'Source snippets'],
+   },
+   {
+     number: '03',
+     icon: CheckCircle2,
+     title: 'Review & inline edit',
+     description: 'Quick review with inline editing, instant undo, and full audit trail. Trust every extraction.',
+     gradient: 'from-[hsl(var(--success))] to-[hsl(var(--success))]/70',
+     bgColor: 'bg-[hsl(var(--success))]/10',
+     textColor: 'text-[hsl(var(--success))]',
+     features: ['Inline quick edit', 'Undo support'],
+   },
+   {
+     number: '04',
+     icon: FileBarChart,
+     title: 'Generate reports',
+     description: 'One-click weekly summaries for stakeholders. No more status meeting prep.',
+     gradient: 'from-[hsl(var(--category-action))] to-[hsl(var(--category-action))]/70',
+     bgColor: 'bg-[hsl(var(--category-action))]/10',
+     textColor: 'text-[hsl(var(--category-action))]',
+     features: ['Auto-generated', 'Stakeholder-ready'],
+   },
+ ];
 
 export function HowItWorksSection() {
   return (
@@ -88,15 +92,32 @@ export function HowItWorksSection() {
                   <span className="text-2xl font-bold text-white font-mono">{step.number}</span>
                 </div>
 
-                {/* Icon */}
-                <div className={`inline-flex items-center justify-center w-10 h-10 rounded-lg ${step.bgColor} ${step.textColor} mb-4`}>
-                  <step.icon className="h-6 w-6" />
-                </div>
+ 
+                 {/* Icon */}
+                 <div className={`inline-flex items-center justify-center w-10 h-10 rounded-lg ${step.bgColor} ${step.textColor} mb-4`}>
+                   <step.icon className="h-5 w-5" />
+                 </div>
 
-                <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  {step.description}
-                </p>
+                 <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
+                 <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                   {step.description}
+                 </p>
+                 
+                 {/* Feature tags */}
+                 <div className="flex flex-wrap gap-2">
+                   {step.features.map((feature, i) => (
+                     <motion.span
+                       key={feature}
+                       initial={{ opacity: 0, scale: 0.8 }}
+                       whileInView={{ opacity: 1, scale: 1 }}
+                       viewport={{ once: true }}
+                       transition={{ delay: index * 0.1 + i * 0.05 + 0.3 }}
+                       className={`text-xs px-2 py-1 rounded-full ${step.bgColor} ${step.textColor} font-medium`}
+                     >
+                       {feature}
+                     </motion.span>
+                   ))}
+                 </div>
               </div>
             </motion.div>
           ))}
