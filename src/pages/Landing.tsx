@@ -7,6 +7,7 @@ import { DemoSection } from '@/components/landing/DemoSection';
 import { BenefitsSection } from '@/components/landing/BenefitsSection';
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
 import { CTASection } from '@/components/landing/CTASection';
+import { SocialProofSection } from '@/components/landing/SocialProofSection';
 
 export default function Landing() {
   return (
@@ -28,14 +29,7 @@ export default function Landing() {
 
       <HeroSection />
       
-      {/* Social Proof */}
-      <section className="border-y border-border bg-card py-8">
-        <div className="container">
-          <p className="text-center text-sm text-muted-foreground">
-            Trusted by Product Managers at <span className="font-medium text-foreground">Google</span>, <span className="font-medium text-foreground">Microsoft</span>, <span className="font-medium text-foreground">Stripe</span>, and 100+ startups
-          </p>
-        </div>
-      </section>
+      <SocialProofSection />
 
       <HowItWorksSection />
       <DemoSection />

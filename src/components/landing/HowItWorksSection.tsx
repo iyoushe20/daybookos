@@ -7,40 +7,48 @@ const steps = [
     icon: ClipboardList,
     title: 'Paste your notes',
     description: 'Write however you want — meeting notes, quick thoughts, stream of consciousness. No formatting needed.',
-    color: 'primary',
+    gradient: 'from-primary to-primary/70',
+    bgColor: 'bg-primary/10',
+    textColor: 'text-primary',
   },
   {
     number: '02',
     icon: Sparkles,
     title: 'AI extracts tasks',
     description: 'Our AI identifies actions, follow-ups, blockers, and updates automatically with confidence scores.',
-    color: 'category-followup',
+    gradient: 'from-[hsl(var(--category-followup))] to-[hsl(var(--category-followup))]/70',
+    bgColor: 'bg-[hsl(var(--category-followup))]/10',
+    textColor: 'text-[hsl(var(--category-followup))]',
   },
   {
     number: '03',
     icon: CheckCircle2,
     title: 'Review & confirm',
     description: 'Quick review, edit if needed, and confirm. Your structured task list is ready.',
-    color: 'success',
+    gradient: 'from-[hsl(var(--success))] to-[hsl(var(--success))]/70',
+    bgColor: 'bg-[hsl(var(--success))]/10',
+    textColor: 'text-[hsl(var(--success))]',
   },
   {
     number: '04',
     icon: FileBarChart,
     title: 'Generate reports',
     description: 'One-click weekly summaries for stakeholders. No more status meeting prep.',
-    color: 'category-action',
+    gradient: 'from-[hsl(var(--category-action))] to-[hsl(var(--category-action))]/70',
+    bgColor: 'bg-[hsl(var(--category-action))]/10',
+    textColor: 'text-[hsl(var(--category-action))]',
   },
 ];
 
 export function HowItWorksSection() {
   return (
-    <section className="py-24 md:py-32 relative overflow-hidden">
+    <section className="py-20 md:py-28 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
       
       <div className="container relative">
         <motion.div 
-          className="text-center mb-16 md:mb-20"
+          className="text-center mb-12 md:mb-16"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -56,7 +64,7 @@ export function HowItWorksSection() {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-4">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           {steps.map((step, index) => (
             <motion.div
               key={step.number}
@@ -68,24 +76,24 @@ export function HowItWorksSection() {
             >
               {/* Connector line */}
               {index < steps.length - 1 && (
-                <div className="hidden lg:block absolute top-12 left-full w-full h-px">
-                  <div className="h-full bg-gradient-to-r from-border via-primary/30 to-border" />
-                  <ArrowRight className="absolute right-0 top-1/2 -translate-y-1/2 h-3 w-3 text-primary/50" />
+                <div className="hidden lg:flex absolute top-16 left-[calc(100%+0.5rem)] w-[calc(100%-1rem)] items-center">
+                  <div className="flex-1 h-0.5 bg-gradient-to-r from-border via-primary/40 to-border rounded-full" />
+                  <ArrowRight className="h-4 w-4 text-primary/60 -ml-1" />
                 </div>
               )}
 
-              <div className="bg-card border border-border rounded-2xl p-6 h-full hover:border-primary/30 hover:shadow-elevated transition-all duration-300 group-hover:-translate-y-1">
-                {/* Step number */}
-                <div className="text-6xl font-bold text-muted/30 mb-4 font-mono">
-                  {step.number}
+              <div className="bg-card border border-border rounded-2xl p-6 h-full hover:border-primary/30 hover:shadow-elevated transition-all duration-300 group-hover:-translate-y-2">
+                {/* Step number - Now visible with gradient */}
+                <div className={`inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br ${step.gradient} mb-5 shadow-lg`}>
+                  <span className="text-2xl font-bold text-white font-mono">{step.number}</span>
                 </div>
 
                 {/* Icon */}
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-${step.color}-light text-${step.color} mb-4`}>
+                <div className={`inline-flex items-center justify-center w-10 h-10 rounded-lg ${step.bgColor} ${step.textColor} mb-4`}>
                   <step.icon className="h-6 w-6" />
                 </div>
 
-                <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
+                <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">
                   {step.description}
                 </p>
