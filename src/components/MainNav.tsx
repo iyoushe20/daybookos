@@ -8,7 +8,10 @@ import {
   Settings,
   LogOut,
   HelpCircle,
-  ChevronDown
+   ChevronDown,
+   Users,
+   LineChart,
+   Link2
 } from 'lucide-react';
 import { Logo } from './Logo';
 import { Button } from './ui/button';
@@ -35,6 +38,8 @@ const navItems = [
     ]
   },
   { href: '/reports', label: 'Reports', icon: BarChart3 },
+   { href: '/manager', label: 'Team', icon: Users },
+   { href: '/analytics', label: 'Analytics', icon: LineChart },
 ];
 
 export function MainNav() {
@@ -142,6 +147,12 @@ export function MainNav() {
                   Manage Projects
                 </Link>
               </DropdownMenuItem>
+               <DropdownMenuItem asChild>
+                 <Link to="/settings/integrations">
+                   <Link2 className="mr-2 h-4 w-4" />
+                   Integrations
+                 </Link>
+               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={logout} className="text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />

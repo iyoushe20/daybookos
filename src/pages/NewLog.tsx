@@ -18,6 +18,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+ import { Checkbox } from '@/components/ui/checkbox';
 import { useProjects } from '@/contexts/ProjectContext';
 import { format } from 'date-fns';
 import { 
@@ -27,7 +28,8 @@ import {
   Link as LinkIcon,
   Plus,
   Trash2,
-  Sparkles
+   Sparkles,
+   Clock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -63,6 +65,43 @@ export default function NewLog() {
   const characterCount = rawText.length;
   const maxCharacters = 10000;
 
+   // Calendar import state
+   const [showCalendarImport, setShowCalendarImport] = useState(false);
+   const [selectedMeetings, setSelectedMeetings] = useState<Set<string>>(new Set());
+   
+   // Demo meetings for today
+   const todayMeetings = [
+     { id: 'm1', title: 'Daily standup', start: '9:30 AM', end: '10:00 AM', attendees: ['Priya', 'Meha', 'Raj'] },
+     { id: 'm2', title: '1:1 with Raj', start: '1:00 PM', end: '1:30 PM', attendees: ['Priya', 'Raj'] },
+     { id: 'm3', title: 'Vendor call - Payment Gateway', start: '2:30 PM', end: '3:00 PM', attendees: ['Priya', 'Vendor Team'] },
+   ];
+ 
+   const handleToggleMeeting = (meetingId: string) => {
+     setSelectedMeetings(prev => {
+       const next = new Set(prev);
+       if (next.has(meetingId)) {
+         next.delete(meetingId);
+       } else {
+         next.add(meetingId);
+       }
+       return next;
+     });
+   };
+ 
+   const handleImportMeetings = () => {
+     if (selectedMeetings.size === 0) return;
+     
+     const imported = todayMeetings
+       .filter(m => selectedMeetings.has(m.id))
+       .map(m => `Meeting: ${m.title}\nTime: ${m.start} - ${m.end}\nAttendees: ${m.attendees.join(', ')}\n`)
+       .join('\n---\n\n');
+     
+     setRawText(prev => (prev ? prev + '\n\n---\n\n' : '') + imported);
+     setShowCalendarImport(false);
+     setSelectedMeetings(new Set());
+     toast.success(`Imported ${selectedMeetings.size} meeting(s)`);
+   };
+ 
   const handleAddAttachment = () => {
     if (attachments.length >= 5) {
       toast.error('Maximum 5 attachments allowed');
@@ -191,6 +230,57 @@ export default function NewLog() {
 
           {/* Notes Textarea */}
           <div className="space-y-2">
+             {/* Calendar Import Section */}
+             <div className="mb-4 p-4 border border-dashed border-border rounded-lg">
+               <div className="flex items-center justify-between">
+                 <div className="flex items-center gap-2">
+                   <CalendarIcon className="h-5 w-5 text-category-meeting" />
+                   <span className="font-medium">Import from Calendar</span>
+                 </div>
+                 <Button 
+                   variant="ghost" 
+                   size="sm"
+                   onClick={() => setShowCalendarImport(!showCalendarImport)}
+                 >
+                   {showCalendarImport ? 'Hide' : 'Show Meetings'}
+                 </Button>
+               </div>
+               
+               {showCalendarImport && (
+                 <motion.div
+                   initial={{ opacity: 0, height: 0 }}
+                   animate={{ opacity: 1, height: 'auto' }}
+                   className="mt-4 space-y-3"
+                 >
+                   <p className="text-sm text-muted-foreground">
+                     Select meetings from {format(date, 'MMMM d')} to import:
+                   </p>
+                   {todayMeetings.map(meeting => (
+                     <div 
+                       key={meeting.id}
+                       className="flex items-center gap-3 p-3 border border-border rounded-lg cursor-pointer hover:bg-accent/50"
+                       onClick={() => handleToggleMeeting(meeting.id)}
+                     >
+                       <Checkbox checked={selectedMeetings.has(meeting.id)} />
+                       <div className="flex-1">
+                         <p className="font-medium text-sm">{meeting.title}</p>
+                         <p className="text-xs text-muted-foreground flex items-center gap-1">
+                           <Clock className="h-3 w-3" />
+                           {meeting.start} - {meeting.end}
+                         </p>
+                       </div>
+                     </div>
+                   ))}
+                   {selectedMeetings.size > 0 && (
+                     <Button size="sm" onClick={handleImportMeetings} className="w-full gap-2">
+                       <Plus className="h-4 w-4" />
+                       Import {selectedMeetings.size} Meeting(s)
+                     </Button>
+                   )}
+                 </motion.div>
+               )}
+             </div>
+ 
             <Label>Your Notes <span className="text-destructive">*</span></Label>
             <Textarea
               placeholder={PLACEHOLDER_TEXT}
