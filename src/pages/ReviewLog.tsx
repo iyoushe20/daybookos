@@ -1,43 +1,32 @@
-import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { AppLayout } from '@/components/AppLayout';
-import { Button } from '@/components/ui/button';
-import { CategoryBadge } from '@/components/CategoryBadge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { TaskCategory } from '@/contexts/TaskContext';
-import { 
-  ArrowLeft,
-  Loader2,
-  Edit2,
-  Trash2,
-  Plus,
-  AlertTriangle,
-  CheckCircle2
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
-
-interface ParsedItem {
-  id: string;
-  text: string;
-  category: TaskCategory;
-  source: string;
-  confidence: number;
-  metadata?: {
-    person?: string;
-    riskLevel?: 'low' | 'medium' | 'high';
-  };
-}
+ import { useState, useCallback } from 'react';
+ import { useNavigate, useParams, Link } from 'react-router-dom';
+ import { motion, AnimatePresence } from 'framer-motion';
+ import { AppLayout } from '@/components/AppLayout';
+ import { Button } from '@/components/ui/button';
+ import { TaskCategory } from '@/contexts/TaskContext';
+ import { ParsedItemCard, ParsedItem } from '@/components/review/ParsedItemCard';
+ import { 
+   ArrowLeft,
+   Loader2,
+   Plus,
+   FileText,
+   History
+ } from 'lucide-react';
+ import { toast } from 'sonner';
 
 // Demo parsed items
-const DEMO_ITEMS: ParsedItem[] = [
+ const DEMO_ITEMS: ParsedItem[] = [
   {
     id: '1',
     text: 'Update Jira ticket STATUS-123',
     category: 'action_item',
     source: 'Need to update Jira ticket STATUS-123',
     confidence: 95,
+     extractionReasoning: {
+       matchedPatterns: ['action_verb_update', 'jira_ticket_reference'],
+       confidenceFactors: { explicit_action: 0.95, ticket_reference: 0.98 },
+       keywords: ['update', 'Jira', 'STATUS-123']
+     }
   },
   {
     id: '2',
@@ -45,6 +34,11 @@ const DEMO_ITEMS: ParsedItem[] = [
     category: 'action_item',
     source: 'Should schedule recon discussion',
     confidence: 72,
+     extractionReasoning: {
+       matchedPatterns: ['action_verb_schedule'],
+       confidenceFactors: { explicit_action: 0.7, topic_clarity: 0.6 },
+       keywords: ['schedule', 'discussion']
+     }
   },
   {
     id: '3',
@@ -52,6 +46,11 @@ const DEMO_ITEMS: ParsedItem[] = [
     category: 'follow_up',
     source: 'Need to follow up on API docs',
     confidence: 88,
+     extractionReasoning: {
+       matchedPatterns: ['follow_up_with_person', 'action_verb_follow_up'],
+       confidenceFactors: { explicit_action: 0.9, person_mentioned: 0.95, topic_clarity: 0.8 },
+       keywords: ['follow up', 'Meha', 'API docs']
+     },
     metadata: { person: 'Meha' },
   },
   {
@@ -60,6 +59,11 @@ const DEMO_ITEMS: ParsedItem[] = [
     category: 'follow_up',
     source: 'PRD is pending review from Raj',
     confidence: 92,
+     extractionReasoning: {
+       matchedPatterns: ['follow_up_with_person', 'pending_review'],
+       confidenceFactors: { explicit_action: 0.9, person_mentioned: 0.95 },
+       keywords: ['PRD', 'review', 'Raj']
+     },
     metadata: { person: 'Raj' },
   },
   {
@@ -68,6 +72,11 @@ const DEMO_ITEMS: ParsedItem[] = [
     category: 'blocker',
     source: 'Blocked on legal sign-off for contract',
     confidence: 98,
+     extractionReasoning: {
+       matchedPatterns: ['blocker_keyword', 'external_dependency'],
+       confidenceFactors: { blocker_explicit: 0.99, risk_indicator: 0.95 },
+       keywords: ['blocked', 'legal', 'sign-off']
+     },
     metadata: { riskLevel: 'high' },
   },
   {
@@ -76,6 +85,11 @@ const DEMO_ITEMS: ParsedItem[] = [
     category: 'blocker',
     source: 'Vendor refused to change pricing model',
     confidence: 95,
+     extractionReasoning: {
+       matchedPatterns: ['external_dependency', 'negative_outcome'],
+       confidenceFactors: { blocker_implicit: 0.9, vendor_mention: 0.85 },
+       keywords: ['vendor', 'refused', 'pricing']
+     },
     metadata: { riskLevel: 'medium' },
   },
   {
@@ -84,6 +98,11 @@ const DEMO_ITEMS: ParsedItem[] = [
     category: 'decision',
     source: 'Decided to use Stripe for payments',
     confidence: 90,
+     extractionReasoning: {
+       matchedPatterns: ['decision_keyword'],
+       confidenceFactors: { decision_explicit: 0.95 },
+       keywords: ['decided', 'Stripe', 'payments']
+     }
   },
   {
     id: '8',
@@ -91,44 +110,21 @@ const DEMO_ITEMS: ParsedItem[] = [
     category: 'what_next',
     source: 'Should look into other options',
     confidence: 65,
+     extractionReasoning: {
+       matchedPatterns: ['action_verb_research'],
+       confidenceFactors: { implicit_action: 0.6, topic_clarity: 0.5 },
+       keywords: ['research', 'options']
+     }
   },
 ];
-
-const ConfidenceBadge = ({ confidence }: { confidence: number }) => {
-  const level = confidence >= 80 ? 'high' : confidence >= 60 ? 'medium' : 'low';
-  const dots = level === 'high' ? 4 : level === 'medium' ? 3 : 2;
-  const colors = {
-    high: 'text-success',
-    medium: 'text-warning',
-    low: 'text-destructive',
-  };
-
-  return (
-    <div className="flex items-center gap-1 text-xs">
-      <div className="flex gap-0.5">
-        {[1, 2, 3, 4].map(i => (
-          <div
-            key={i}
-            className={cn(
-              "w-1.5 h-1.5 rounded-full",
-              i <= dots ? colors[level] : "bg-muted"
-            )}
-            style={{ backgroundColor: i <= dots ? undefined : undefined }}
-          />
-        ))}
-      </div>
-      <span className={cn("capitalize", colors[level])}>
-        {level} ({confidence}%)
-      </span>
-    </div>
-  );
-};
 
 export default function ReviewLog() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [items, setItems] = useState<ParsedItem[]>(DEMO_ITEMS);
   const [isSubmitting, setIsSubmitting] = useState(false);
+   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set(items.map(i => i.id)));
+   const [deletedItems, setDeletedItems] = useState<ParsedItem[]>([]);
 
   const groupedItems = items.reduce((acc, item) => {
     if (!acc[item.category]) acc[item.category] = [];
@@ -146,21 +142,51 @@ export default function ReviewLog() {
     'what_next',
   ];
 
-  const handleDelete = (itemId: string) => {
-    setItems(items.filter(i => i.id !== itemId));
-    toast.success('Item removed');
-  };
+   const handleEdit = useCallback((itemId: string, updates: Partial<ParsedItem>) => {
+     setItems(prev => prev.map(item => 
+       item.id === itemId ? { ...item, ...updates } : item
+     ));
+   }, []);
+ 
+   const handleDelete = useCallback((itemId: string) => {
+     const item = items.find(i => i.id === itemId);
+     if (item) {
+       setDeletedItems(prev => [...prev, item]);
+     }
+     setItems(prev => prev.filter(i => i.id !== itemId));
+     setSelectedItems(prev => {
+       const next = new Set(prev);
+       next.delete(itemId);
+       return next;
+     });
+   }, [items]);
+ 
+   const handleUndo = useCallback((itemId: string) => {
+     const item = deletedItems.find(i => i.id === itemId);
+     if (item) {
+       setItems(prev => [...prev, item]);
+       setDeletedItems(prev => prev.filter(i => i.id !== itemId));
+       setSelectedItems(prev => new Set([...prev, itemId]));
+     }
+   }, [deletedItems]);
+ 
+   const toggleSelection = useCallback((itemId: string) => {
+     setSelectedItems(prev => {
+       const next = new Set(prev);
+       if (next.has(itemId)) {
+         next.delete(itemId);
+       } else {
+         next.add(itemId);
+       }
+       return next;
+     });
+   }, []);
 
   const handleConfirm = async () => {
     setIsSubmitting(true);
     await new Promise(resolve => setTimeout(resolve, 1500));
-    toast.success('Plan saved! Your tasks have been added.');
+     toast.success(`Plan saved! ${selectedItems.size} tasks added.`);
     navigate('/dashboard');
-  };
-
-  const getCategoryIcon = (category: TaskCategory) => {
-    if (category === 'blocker') return <AlertTriangle className="h-4 w-4 text-destructive" />;
-    return <CheckCircle2 className="h-4 w-4" />;
   };
 
   return (
@@ -178,20 +204,28 @@ export default function ReviewLog() {
               Payment Gateway Integration • Monday, February 3, 2026
             </p>
           </div>
-          <Button
-            onClick={handleConfirm}
-            disabled={isSubmitting || items.length === 0}
-            className="gap-2"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>Confirm & Save</>
-            )}
-          </Button>
+           <div className="flex items-center gap-2">
+             <Button variant="outline" className="gap-2" asChild>
+               <Link to={`/logs/${id}/audit`}>
+                 <History className="h-4 w-4" />
+                 Audit Log
+               </Link>
+             </Button>
+             <Button
+               onClick={handleConfirm}
+               disabled={isSubmitting || selectedItems.size === 0}
+               className="gap-2"
+             >
+               {isSubmitting ? (
+                 <>
+                   <Loader2 className="h-4 w-4 animate-spin" />
+                   Saving...
+                 </>
+               ) : (
+                 <>Confirm & Save ({selectedItems.size})</>
+               )}
+             </Button>
+           </div>
         </div>
 
         <motion.div
@@ -199,10 +233,16 @@ export default function ReviewLog() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-card border border-border rounded-xl p-6"
         >
-          <p className="text-muted-foreground mb-6">
-            We extracted <span className="font-semibold text-foreground">{items.length} items</span> from your notes. 
-            Review and edit below.
-          </p>
+           <div className="flex items-center justify-between mb-6">
+             <p className="text-muted-foreground">
+               We extracted <span className="font-semibold text-foreground">{items.length} items</span> from your notes. 
+               Review and edit below. <span className="text-xs">(Double-click to edit)</span>
+             </p>
+             <div className="flex items-center gap-2 text-sm text-muted-foreground">
+               <FileText className="h-4 w-4" />
+               <span>{selectedItems.size} selected</span>
+             </div>
+           </div>
 
           <div className="space-y-8">
             {categoryOrder.map(category => {
@@ -234,50 +274,15 @@ export default function ReviewLog() {
                   <div className="space-y-3">
                     <AnimatePresence mode="popLayout">
                       {categoryItems.map(item => (
-                        <motion.div
+                             <ParsedItemCard
                           key={item.id}
-                          layout
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.95, height: 0 }}
-                          className={cn(
-                            "border border-border rounded-lg p-4 transition-colors",
-                            category === 'blocker' && "border-l-[3px] border-l-destructive"
-                          )}
-                        >
-                          <div className="flex items-start gap-3">
-                            <Checkbox className="mt-1" />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-start justify-between gap-2">
-                                <p className="font-medium">{item.text}</p>
-                                <div className="flex items-center gap-1 flex-shrink-0">
-                                  <Button variant="ghost" size="icon" className="h-7 w-7">
-                                    <Edit2 className="h-3.5 w-3.5" />
-                                  </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                                    onClick={() => handleDelete(item.id)}
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                  </Button>
-                                </div>
-                              </div>
-                              
-                              <div className="mt-2 pt-2 border-t border-border/50 text-sm text-muted-foreground space-y-1">
-                                <p>Source: "{item.source}"</p>
-                                {item.metadata?.person && (
-                                  <p>To: {item.metadata.person}</p>
-                                )}
-                                {item.metadata?.riskLevel && (
-                                  <p>Risk Level: <span className="capitalize">{item.metadata.riskLevel}</span></p>
-                                )}
-                                <ConfidenceBadge confidence={item.confidence} />
-                              </div>
-                            </div>
-                          </div>
-                        </motion.div>
+                               item={item}
+                               isSelected={selectedItems.has(item.id)}
+                               onSelect={() => toggleSelection(item.id)}
+                               onEdit={handleEdit}
+                               onDelete={handleDelete}
+                               onUndo={handleUndo}
+                             />
                       ))}
                     </AnimatePresence>
                   </div>

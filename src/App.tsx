@@ -22,6 +22,10 @@ import ViewReport from "./pages/ViewReport";
 import SettingsProfile from "./pages/SettingsProfile";
 import SettingsProjects from "./pages/SettingsProjects";
 import NotFound from "./pages/NotFound";
+ import AuditLog from "./pages/AuditLog";
+ import SettingsIntegrations from "./pages/SettingsIntegrations";
+ import ManagerDashboard from "./pages/ManagerDashboard";
+ import Analytics from "./pages/Analytics";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +65,17 @@ function AppRoutes() {
       <Route path="/reports/:id" element={<ProtectedRoute><ViewReport /></ProtectedRoute>} />
       <Route path="/settings/profile" element={<ProtectedRoute><SettingsProfile /></ProtectedRoute>} />
       <Route path="/settings/projects" element={<ProtectedRoute><SettingsProjects /></ProtectedRoute>} />
+       <Route path="/settings/integrations" element={<ProtectedRoute><SettingsIntegrations /></ProtectedRoute>} />
+       
+       {/* Phase A: Audit Log */}
+       <Route path="/logs/:id/audit" element={<ProtectedRoute><AuditLog /></ProtectedRoute>} />
+       
+       {/* Phase C: Manager Dashboard */}
+       <Route path="/manager" element={<ProtectedRoute><ManagerDashboard /></ProtectedRoute>} />
+       <Route path="/manager/dashboard" element={<ProtectedRoute><ManagerDashboard /></ProtectedRoute>} />
+       
+       {/* Phase D: Analytics */}
+       <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
 
       {/* Catch-all */}
       <Route path="*" element={<NotFound />} />
