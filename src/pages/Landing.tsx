@@ -50,7 +50,7 @@ export default function Landing() {
               </Link>
             </div>
             <p className="text-sm text-muted-foreground">
-              © 2026 PM Task OS. All rights reserved.
+              © 2026 Daybook. All rights reserved.
             </p>
           </div>
         </div>
