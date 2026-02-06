@@ -150,33 +150,33 @@
    },
  ];
  
- export default function ManagerDashboard() {
-   const navigate = useNavigate();
-   const [teamFilter, setTeamFilter] = useState<string>('all');
- 
-   const stats = {
-     openTasks: DEMO_TEAM.reduce((sum, m) => sum + m.openTasks, 0),
-     blockers: DEMO_BLOCKERS.length,
-     asks: DEMO_ASKS.length,
-     highRisk: DEMO_BLOCKERS.filter(b => b.riskLevel === 'high').length,
-   };
- 
-   const getInitials = (name: string) => {
-     return name.split(' ').map(n => n[0]).join('').toUpperCase();
-   };
- 
-   const formatDate = (date: Date) => {
-     const today = new Date();
-     const diffDays = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-     if (diffDays === 0) return 'Today';
-     if (diffDays === 1) return 'Yesterday';
-     return `${diffDays} days ago`;
-   };
- 
-   return (
-     <AppLayout>
-       <div className="space-y-6">
-         {/* Header */}
+export default function ManagerDashboard() {
+  const navigate = useNavigate();
+  const [teamFilter, setTeamFilter] = useState<string>('all');
+
+  const stats = {
+    openTasks: DEMO_TEAM.reduce((sum, m) => sum + m.openTasks, 0),
+    blockers: DEMO_BLOCKERS.length,
+    asks: DEMO_ASKS.length,
+    highRisk: DEMO_BLOCKERS.filter(b => b.riskLevel === 'high').length,
+  };
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
+  const formatDate = (date: Date) => {
+    const today = new Date();
+    const diffDays = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    return `${diffDays} days ago`;
+  };
+
+  return (
+    <AppLayout>
+      <div className="space-y-6">
+        {/* Header */}
          <div className="flex items-center justify-between">
            <div>
              <h1 className="text-2xl font-bold">Manager Dashboard</h1>

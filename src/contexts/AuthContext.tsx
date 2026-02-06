@@ -1,20 +1,25 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 
+export type UserRole = 'individual' | 'manager';
+
 export interface User {
   id: string;
   name: string;
   email: string;
   avatarUrl?: string;
   isNewUser?: boolean;
+  role: UserRole;
 }
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isManager: boolean;
   login: (provider: 'google' | 'microsoft') => Promise<void>;
   logout: () => void;
   completeOnboarding: () => void;
+  switchRole: (role: UserRole) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,6 +31,7 @@ const MOCK_USER: User = {
   email: 'priya@company.com',
   avatarUrl: undefined,
   isNewUser: false,
+  role: 'individual',
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -39,10 +45,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     // Check if user has completed onboarding (mock: check localStorage)
     const hasCompletedOnboarding = localStorage.getItem('pmtaskos_onboarded') === 'true';
+    const savedRole = localStorage.getItem('pmtaskos_role') as UserRole || 'individual';
     
     setUser({
       ...MOCK_USER,
       isNewUser: !hasCompletedOnboarding,
+      role: savedRole,
     });
     setIsLoading(false);
   }, []);
@@ -57,15 +65,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(prev => prev ? { ...prev, isNewUser: false } : null);
   }, []);
 
+  const switchRole = useCallback((role: UserRole) => {
+    localStorage.setItem('pmtaskos_role', role);
+    setUser(prev => prev ? { ...prev, role } : null);
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
         user,
         isAuthenticated: !!user,
         isLoading,
+        isManager: user?.role === 'manager',
         login,
         logout,
         completeOnboarding,
+        switchRole,
       }}
     >
       {children}

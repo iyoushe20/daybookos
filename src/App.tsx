@@ -37,6 +37,14 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function ManagerRoute() {
+  const { isManager } = useAuth();
+  if (!isManager) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <ManagerDashboard />;
+}
+
 function AppRoutes() {
   const { isAuthenticated, user } = useAuth();
 
@@ -70,9 +78,9 @@ function AppRoutes() {
        {/* Phase A: Audit Log */}
        <Route path="/logs/:id/audit" element={<ProtectedRoute><AuditLog /></ProtectedRoute>} />
        
-       {/* Phase C: Manager Dashboard */}
-       <Route path="/manager" element={<ProtectedRoute><ManagerDashboard /></ProtectedRoute>} />
-       <Route path="/manager/dashboard" element={<ProtectedRoute><ManagerDashboard /></ProtectedRoute>} />
+       {/* Phase C: Manager Dashboard - requires manager role */}
+       <Route path="/manager" element={<ProtectedRoute><ManagerRoute /></ProtectedRoute>} />
+       <Route path="/manager/dashboard" element={<ProtectedRoute><ManagerRoute /></ProtectedRoute>} />
        
        {/* Phase D: Analytics */}
        <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
