@@ -6,10 +6,8 @@ import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
 import { DemoSection } from '@/components/landing/DemoSection';
 import { BenefitsSection } from '@/components/landing/BenefitsSection';
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
- import { CTASection } from '@/components/landing/CTASection';
- import { SocialProofSection } from '@/components/landing/SocialProofSection';
- import { RoadmapSection } from '@/components/landing/RoadmapSection';
-
+import { CTASection } from '@/components/landing/CTASection';
+import { SocialProofSection } from '@/components/landing/SocialProofSection';
 export default function Landing() {
   return (
     <div className="min-h-screen bg-background">
@@ -34,10 +32,9 @@ export default function Landing() {
 
       <HowItWorksSection />
       <DemoSection />
-       <BenefitsSection />
-       <RoadmapSection />
-       <TestimonialsSection />
-       <CTASection />
+      <BenefitsSection />
+      <TestimonialsSection />
+      <CTASection />
 
       {/* Footer */}
       <footer className="border-t border-border py-12 bg-card">
