@@ -8,10 +8,12 @@ import {
   Settings,
   LogOut,
   HelpCircle,
-   ChevronDown,
-   Users,
-   LineChart,
-   Link2
+  ChevronDown,
+  Users,
+  LineChart,
+  Link2,
+  UserCog,
+  User
 } from 'lucide-react';
 import { Logo } from './Logo';
 import { Button } from './ui/button';
@@ -21,11 +23,23 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from './ui/dropdown-menu';
 import { Avatar, AvatarFallback } from './ui/avatar';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, UserRole } from '@/contexts/AuthContext';
+import { Badge } from './ui/badge';
 
-const navItems = [
+interface NavItem {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  managerOnly?: boolean;
+  children?: { href: string; label: string }[];
+}
+
+const navItems: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/logs', label: 'Logs', icon: FileText },
   { 
@@ -38,13 +52,13 @@ const navItems = [
     ]
   },
   { href: '/reports', label: 'Reports', icon: BarChart3 },
-   { href: '/manager', label: 'Team', icon: Users },
-   { href: '/analytics', label: 'Analytics', icon: LineChart },
+  { href: '/manager', label: 'Team', icon: Users, managerOnly: true },
+  { href: '/analytics', label: 'Analytics', icon: LineChart },
 ];
 
 export function MainNav() {
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user, logout, isManager, switchRole } = useAuth();
 
   const getInitials = (name: string) => {
     return name
@@ -55,6 +69,9 @@ export function MainNav() {
       .slice(0, 2);
   };
 
+  // Filter nav items based on role
+  const visibleNavItems = navItems.filter(item => !item.managerOnly || isManager);
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
       <div className="container flex h-16 items-center justify-between">
@@ -62,7 +79,7 @@ export function MainNav() {
           <Logo />
           
           <nav className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => {
+            {visibleNavItems.map((item) => {
               const isActive = location.pathname === item.href || 
                 location.pathname.startsWith(item.href + '/');
               
@@ -114,6 +131,12 @@ export function MainNav() {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Role indicator */}
+          <Badge variant="outline" className="hidden sm:flex gap-1 text-xs">
+            {isManager ? <UserCog className="h-3 w-3" /> : <User className="h-3 w-3" />}
+            {isManager ? 'Manager' : 'IC'}
+          </Badge>
+
           <Button variant="ghost" size="icon" className="hidden md:flex">
             <HelpCircle className="h-5 w-5 text-muted-foreground" />
           </Button>
@@ -135,6 +158,26 @@ export function MainNav() {
                 <p className="text-xs text-muted-foreground">{user?.email || 'user@example.com'}</p>
               </div>
               <DropdownMenuSeparator />
+              
+              {/* Role Switcher */}
+              <DropdownMenuLabel className="text-xs text-muted-foreground">
+                Work Mode
+              </DropdownMenuLabel>
+              <DropdownMenuRadioGroup 
+                value={user?.role || 'individual'} 
+                onValueChange={(value) => switchRole(value as UserRole)}
+              >
+                <DropdownMenuRadioItem value="individual" className="gap-2">
+                  <User className="h-4 w-4" />
+                  Individual Contributor
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="manager" className="gap-2">
+                  <UserCog className="h-4 w-4" />
+                  Manager View
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+              
+              <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link to="/settings/profile">
                   <Settings className="mr-2 h-4 w-4" />
@@ -147,12 +190,12 @@ export function MainNav() {
                   Manage Projects
                 </Link>
               </DropdownMenuItem>
-               <DropdownMenuItem asChild>
-                 <Link to="/settings/integrations">
-                   <Link2 className="mr-2 h-4 w-4" />
-                   Integrations
-                 </Link>
-               </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/settings/integrations">
+                  <Link2 className="mr-2 h-4 w-4" />
+                  Integrations
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={logout} className="text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
