@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, createContext, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { 
@@ -9,7 +9,10 @@ import {
   ClipboardList, 
   CheckCircle2, 
   FileBarChart,
-  Lightbulb
+  Lightbulb,
+  Mail,
+  Users,
+  Shield
 } from 'lucide-react';
 
 interface TourStep {
@@ -47,13 +50,13 @@ export function useGuidedTour() {
 const TOUR_STEPS: TourStep[] = [
   {
     id: 'welcome',
-    title: 'Welcome to PM Task OS! 🎉',
-    description: 'Let\'s take a quick tour to show you how AI helps you turn messy notes into structured tasks.',
+    title: 'Welcome to Daybook! 📓',
+    description: 'Your AI-powered daily work companion. Let\'s show you how Daybook turns messy notes into structured, actionable tasks.',
     icon: <Sparkles className="h-6 w-6" />,
   },
   {
     id: 'paste-notes',
-    title: 'Step 1: Paste Your Notes',
+    title: 'Step 1: Capture Your Day',
     description: 'Write or paste your daily work notes in any format — meeting summaries, to-dos, random thoughts. No structure needed!',
     icon: <ClipboardList className="h-6 w-6" />,
     highlight: 'logs-new',
@@ -61,25 +64,37 @@ const TOUR_STEPS: TourStep[] = [
   {
     id: 'ai-extraction',
     title: 'Step 2: AI Extracts Tasks',
-    description: 'Our AI automatically identifies actions, follow-ups, blockers, and updates from your notes with confidence scores.',
+    description: 'Daybook AI identifies actions, follow-ups, blockers, and updates from your notes with confidence scores and source snippets.',
     icon: <Sparkles className="h-6 w-6" />,
   },
   {
     id: 'review-confirm',
     title: 'Step 3: Review & Confirm',
-    description: 'Review what AI extracted, edit if needed, and confirm. Items become your structured task list.',
+    description: 'Review what AI extracted with confidence badges, see the source text, edit inline if needed, and confirm. Every change is tracked in the audit log.',
     icon: <CheckCircle2 className="h-6 w-6" />,
   },
   {
+    id: 'email-intake',
+    title: 'Step 4: Email & Calendar Sync',
+    description: 'Forward emails to your unique Daybook address to auto-parse tasks. Connect Google or Outlook calendars to pull meeting context.',
+    icon: <Mail className="h-6 w-6" />,
+  },
+  {
+    id: 'manager-view',
+    title: 'Step 5: Manager Dashboard',
+    description: 'Managers can switch to Team View to see top 5 blockers, top 5 asks, and team-wide task status at a glance.',
+    icon: <Users className="h-6 w-6" />,
+  },
+  {
     id: 'reports',
-    title: 'Step 4: Generate Reports',
+    title: 'Step 6: Generate Reports',
     description: 'One-click weekly reports summarize your work for stakeholders. No more status meeting prep!',
     icon: <FileBarChart className="h-6 w-6" />,
   },
   {
     id: 'tips',
     title: 'Pro Tips',
-    description: 'Use natural language like "need to follow up with Raj about PRD" or "blocked on legal approval" — AI understands context!',
+    description: 'Use natural language like "need to follow up with Raj about PRD" or "blocked on legal approval" — Daybook AI understands context!',
     icon: <Lightbulb className="h-6 w-6" />,
   },
 ];
@@ -99,7 +114,7 @@ export function GuidedTourProvider({ children }: GuidedTourProviderProps) {
 
   const endTour = () => {
     setIsActive(false);
-    localStorage.setItem('pmtaskos_tour_completed', 'true');
+    localStorage.setItem('daybook_tour_completed', 'true');
   };
 
   const nextStep = () => {
@@ -205,24 +220,56 @@ export function GuidedTourModal() {
                 {/* Visual example for AI extraction step */}
                 {step.id === 'ai-extraction' && (
                   <div className="bg-muted/50 rounded-xl p-4 border border-border">
-                    <div className="text-xs text-muted-foreground mb-3 font-medium">AI EXTRACTION PREVIEW</div>
+                    <div className="text-xs text-muted-foreground mb-3 font-medium flex items-center gap-2">
+                      <Shield className="h-3 w-3" />
+                      PARSE PROVENANCE PREVIEW
+                    </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm">
                         <span className="px-2 py-0.5 rounded text-xs font-medium bg-category-action-light text-category-action">Action</span>
                         <span>Update Jira ticket for sprint</span>
-                        <span className="ml-auto text-xs text-success">95%</span>
+                        <span className="ml-auto text-xs text-success font-medium">95%</span>
                       </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="px-2 py-0.5 rounded text-xs font-medium bg-category-followup-light text-category-followup">Follow-up</span>
-                        <span>Check with Meha on designs</span>
-                        <span className="ml-auto text-xs text-success">88%</span>
+                      <div className="text-xs text-muted-foreground pl-4 border-l-2 border-primary/30 italic">
+                        "...need to update the Jira ticket before sprint planning..."
                       </div>
-                      <div className="flex items-center gap-2 text-sm">
+                      <div className="flex items-center gap-2 text-sm mt-3">
                         <span className="px-2 py-0.5 rounded text-xs font-medium bg-category-blocker-light text-category-blocker">Blocker</span>
                         <span>Waiting for legal sign-off</span>
-                        <span className="ml-auto text-xs text-warning">72%</span>
+                        <span className="ml-auto text-xs text-warning font-medium">72%</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground pl-4 border-l-2 border-primary/30 italic">
+                        "...blocked on legal, they haven't responded..."
                       </div>
                     </div>
+                  </div>
+                )}
+
+                {/* Manager view visual */}
+                {step.id === 'manager-view' && (
+                  <div className="bg-muted/50 rounded-xl p-4 border border-border">
+                    <div className="text-xs text-muted-foreground mb-3 font-medium">MANAGER DASHBOARD PREVIEW</div>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="bg-destructive/10 rounded-lg p-2">
+                        <div className="text-xs text-destructive font-medium">Top 5 Blockers</div>
+                        <div className="text-lg font-bold text-destructive">4</div>
+                      </div>
+                      <div className="bg-category-followup-light rounded-lg p-2">
+                        <div className="text-xs text-category-followup font-medium">Top 5 Asks</div>
+                        <div className="text-lg font-bold text-category-followup">3</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Email intake visual */}
+                {step.id === 'email-intake' && (
+                  <div className="bg-muted/50 rounded-xl p-4 border border-border">
+                    <div className="text-xs text-muted-foreground mb-3 font-medium">EMAIL INTAKE</div>
+                    <div className="font-mono text-xs bg-card px-3 py-2 rounded border">
+                      priya.abc123@intake.daybook.app
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">Forward emails → Auto-parsed tasks</p>
                   </div>
                 )}
 

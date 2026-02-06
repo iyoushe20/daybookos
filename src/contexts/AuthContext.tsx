@@ -44,8 +44,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await new Promise(resolve => setTimeout(resolve, 1500));
     
     // Check if user has completed onboarding (mock: check localStorage)
-    const hasCompletedOnboarding = localStorage.getItem('pmtaskos_onboarded') === 'true';
-    const savedRole = localStorage.getItem('pmtaskos_role') as UserRole || 'individual';
+    const hasCompletedOnboarding = localStorage.getItem('daybook_onboarded') === 'true';
+    const savedRole = localStorage.getItem('daybook_role') as UserRole || 'individual';
     
     setUser({
       ...MOCK_USER,
@@ -57,16 +57,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(() => {
     setUser(null);
-    localStorage.removeItem('pmtaskos_onboarded');
+    localStorage.removeItem('daybook_onboarded');
   }, []);
 
   const completeOnboarding = useCallback(() => {
-    localStorage.setItem('pmtaskos_onboarded', 'true');
+    localStorage.setItem('daybook_onboarded', 'true');
     setUser(prev => prev ? { ...prev, isNewUser: false } : null);
   }, []);
 
   const switchRole = useCallback((role: UserRole) => {
-    localStorage.setItem('pmtaskos_role', role);
+    localStorage.setItem('daybook_role', role);
     setUser(prev => prev ? { ...prev, role } : null);
   }, []);
 
