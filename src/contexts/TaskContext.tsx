@@ -1,15 +1,26 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 
-export type TaskCategory = 
-  | 'action_item' 
-  | 'follow_up' 
-  | 'meeting' 
-  | 'decision' 
-  | 'writing' 
-  | 'blocker' 
-  | 'what_next';
+// Default categories (built-in)
+export const DEFAULT_CATEGORIES = [
+  'action_item',
+  'follow_up',
+  'meeting',
+  'decision',
+  'writing',
+  'blocker',
+  'what_next',
+] as const;
+
+export type DefaultTaskCategory = typeof DEFAULT_CATEGORIES[number];
+export type TaskCategory = DefaultTaskCategory | string;
 
 export type TaskStatus = 'open' | 'completed';
+
+export interface CategoryConfig {
+  id: string;
+  label: string;
+  isDefault: boolean;
+}
 
 export interface Task {
   id: string;
@@ -31,6 +42,7 @@ export interface Task {
 
 interface TaskContextType {
   tasks: Task[];
+  categories: CategoryConfig[];
   addTask: (task: Omit<Task, 'id' | 'createdAt'>) => void;
   updateTask: (id: string, updates: Partial<Task>) => void;
   deleteTask: (id: string) => void;
@@ -38,9 +50,25 @@ interface TaskContextType {
   getTasksByProject: (projectId: string) => Task[];
   getOpenTasks: () => Task[];
   getTasksByCategory: (category: TaskCategory) => Task[];
+  addCategory: (label: string) => boolean;
+  deleteCategory: (id: string) => boolean;
+  canAddCategory: () => boolean;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
+
+const MAX_CATEGORIES = 7;
+
+// Default category configurations
+const DEFAULT_CATEGORY_CONFIGS: CategoryConfig[] = [
+  { id: 'action_item', label: 'Action Item', isDefault: true },
+  { id: 'follow_up', label: 'Follow-up', isDefault: true },
+  { id: 'meeting', label: 'Meeting', isDefault: true },
+  { id: 'decision', label: 'Decision', isDefault: true },
+  { id: 'writing', label: 'Writing', isDefault: true },
+  { id: 'blocker', label: 'Blocker', isDefault: true },
+  { id: 'what_next', label: 'What Next', isDefault: true },
+];
 
 // Demo tasks
 const DEMO_TASKS: Task[] = [
@@ -133,6 +161,7 @@ const DEMO_TASKS: Task[] = [
 
 export function TaskProvider({ children }: { children: React.ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>(DEMO_TASKS);
+  const [categories, setCategories] = useState<CategoryConfig[]>(DEFAULT_CATEGORY_CONFIGS);
 
   const addTask = useCallback((task: Omit<Task, 'id' | 'createdAt'>) => {
     const newTask: Task = {
@@ -184,10 +213,50 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     [tasks]
   );
 
+  const canAddCategory = useCallback(() => {
+    return categories.length < MAX_CATEGORIES;
+  }, [categories]);
+
+  const addCategory = useCallback((label: string): boolean => {
+    if (categories.length >= MAX_CATEGORIES) {
+      return false;
+    }
+    
+    // Generate a slug-like ID from the label
+    const id = label.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+    
+    // Check if category already exists
+    if (categories.some(c => c.id === id)) {
+      return false;
+    }
+
+    setCategories(prev => [...prev, { id, label, isDefault: false }]);
+    return true;
+  }, [categories]);
+
+  const deleteCategory = useCallback((id: string): boolean => {
+    const category = categories.find(c => c.id === id);
+    
+    // Can't delete default categories
+    if (!category || category.isDefault) {
+      return false;
+    }
+
+    setCategories(prev => prev.filter(c => c.id !== id));
+    
+    // Move tasks with this category to 'action_item'
+    setTasks(prev => 
+      prev.map(t => t.category === id ? { ...t, category: 'action_item' } : t)
+    );
+    
+    return true;
+  }, [categories]);
+
   return (
     <TaskContext.Provider
       value={{
         tasks,
+        categories,
         addTask,
         updateTask,
         deleteTask,
@@ -195,6 +264,9 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
         getTasksByProject,
         getOpenTasks,
         getTasksByCategory,
+        addCategory,
+        deleteCategory,
+        canAddCategory,
       }}
     >
       {children}
