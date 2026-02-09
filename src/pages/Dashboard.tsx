@@ -257,8 +257,8 @@ export default function Dashboard() {
                   </Link>
                 </motion.div>
               ))}
-              <Button variant="ghost" className="w-full" asChild>
-                <Link to="/logs">View all logs →</Link>
+              <Button variant="ghost" className="w-full" onClick={() => navigate('/logs')}>
+                View all logs →
               </Button>
             </div>
           )}

@@ -13,6 +13,7 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import OnboardingSetup from "./pages/OnboardingSetup";
 import Dashboard from "./pages/Dashboard";
+import Logs from "./pages/Logs";
 import NewLog from "./pages/NewLog";
 import ReviewLog from "./pages/ReviewLog";
 import TodaysPlan from "./pages/TodaysPlan";
@@ -22,10 +23,10 @@ import ViewReport from "./pages/ViewReport";
 import SettingsProfile from "./pages/SettingsProfile";
 import SettingsProjects from "./pages/SettingsProjects";
 import NotFound from "./pages/NotFound";
- import AuditLog from "./pages/AuditLog";
- import SettingsIntegrations from "./pages/SettingsIntegrations";
- import ManagerDashboard from "./pages/ManagerDashboard";
- import Analytics from "./pages/Analytics";
+import AuditLog from "./pages/AuditLog";
+import SettingsIntegrations from "./pages/SettingsIntegrations";
+import ManagerDashboard from "./pages/ManagerDashboard";
+import Analytics from "./pages/Analytics";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +64,7 @@ function AppRoutes() {
 
       {/* Main App Routes */}
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/logs" element={<ProtectedRoute><Logs /></ProtectedRoute>} />
       <Route path="/logs/new" element={<ProtectedRoute><NewLog /></ProtectedRoute>} />
       <Route path="/logs/:id" element={<ProtectedRoute><ReviewLog /></ProtectedRoute>} />
       <Route path="/logs/:id/review" element={<ProtectedRoute><ReviewLog /></ProtectedRoute>} />
