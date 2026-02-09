@@ -5,6 +5,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { StatCard } from '@/components/StatCard';
 import { CategoryBadge } from '@/components/CategoryBadge';
 import { EmptyState } from '@/components/EmptyState';
+import { AddCategoryDialog } from '@/components/AddCategoryDialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -26,14 +27,15 @@ import {
   ChevronDown,
   ChevronUp,
   Eye,
-  FileText
+  FileText,
+  X
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 export default function TodaysPlan() {
   const navigate = useNavigate();
-  const { tasks, toggleTaskStatus } = useTasks();
+  const { tasks, toggleTaskStatus, categories, deleteCategory } = useTasks();
   const { projects, getProject } = useProjects();
   const [showCompleted, setShowCompleted] = useState(false);
   const [projectFilter, setProjectFilter] = useState<string>('all');
@@ -204,7 +206,7 @@ export default function TodaysPlan() {
           </div>
           <Button onClick={() => navigate('/logs/new')} className="gap-2">
             <Plus className="h-4 w-4" />
-            New Log
+            Add Task
           </Button>
         </div>
 
@@ -264,15 +266,32 @@ export default function TodaysPlan() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="action_item">Action Items</SelectItem>
-              <SelectItem value="follow_up">Follow-ups</SelectItem>
-              <SelectItem value="meeting">Meetings</SelectItem>
-              <SelectItem value="decision">Decisions</SelectItem>
-              <SelectItem value="writing">Writing Tasks</SelectItem>
-              <SelectItem value="blocker">Blockers</SelectItem>
-              <SelectItem value="what_next">What Next</SelectItem>
+              {categories.map(cat => (
+                <SelectItem key={cat.id} value={cat.id}>
+                  <div className="flex items-center justify-between w-full gap-2">
+                    <span>{cat.label}</span>
+                    {!cat.isDefault && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (deleteCategory(cat.id)) {
+                            toast.success(`Category "${cat.label}" deleted`);
+                            if (categoryFilter === cat.id) {
+                              setCategoryFilter('all');
+                            }
+                          }
+                        }}
+                        className="ml-2 text-muted-foreground hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
+          <AddCategoryDialog />
           <label className="flex items-center gap-2 text-sm cursor-pointer">
             <Checkbox
               checked={showCompleted}
