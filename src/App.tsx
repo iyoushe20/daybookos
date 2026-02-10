@@ -73,6 +73,7 @@ function AppRoutes() {
       <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
       <Route path="/reports/generate" element={<ProtectedRoute><GenerateReport /></ProtectedRoute>} />
       <Route path="/reports/:id" element={<ProtectedRoute><ViewReport /></ProtectedRoute>} />
+      <Route path="/settings" element={<Navigate to="/settings/profile" replace />} />
       <Route path="/settings/profile" element={<ProtectedRoute><SettingsProfile /></ProtectedRoute>} />
       <Route path="/settings/projects" element={<ProtectedRoute><SettingsProjects /></ProtectedRoute>} />
        <Route path="/settings/integrations" element={<ProtectedRoute><SettingsIntegrations /></ProtectedRoute>} />
